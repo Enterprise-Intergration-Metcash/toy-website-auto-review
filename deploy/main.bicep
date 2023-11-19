@@ -16,13 +16,14 @@ param resourceNameSuffix string = uniqueString(resourceGroup().id)
 var appServiceAppName = 'toy-website-${resourceNameSuffix}'
 var appServicePlanName = 'toy-website'
 var storageAccountName = 'mystorage${resourceNameSuffix}'
+var appServiceAppLinuxFrameworkVersion = 'node|14-lts'
 
 // Define the SKUs for each component based on the environment type.
 var environmentConfigurationMap = {
   Production: {
     appServicePlan: {
       sku: {
-        name: 'S1'
+        name: 'F1'
         capacity: 1
       }
     }
@@ -35,12 +36,12 @@ var environmentConfigurationMap = {
   Test: {
     appServicePlan: {
       sku: {
-        name: 'B1'
+        name: 'F1'
       }
     }
     storageAccount: {
       sku: {
-        name: 'Standard_GRS'
+        name: 'Standard_LRS'
       }
     }
   }
@@ -50,6 +51,10 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: appServicePlanName
   location: location
   sku: environmentConfigurationMap[environmentType].appServicePlan.sku
+  kind: 'linux'
+  properties: {
+    reserved: true
+  }  
 }
 
 resource appServiceApp 'Microsoft.Web/sites@2022-03-01' = {
@@ -58,6 +63,9 @@ resource appServiceApp 'Microsoft.Web/sites@2022-03-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
+    siteConfig: {
+      linuxFxVersion: 'node|14-lts'
+    }    
   }
 }
 
